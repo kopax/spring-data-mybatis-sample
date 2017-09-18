@@ -1,0 +1,27 @@
+*.sw?
+.#*
+*#
+*~
+.classpath
+.project
+.hprof
+.settings/
+.sonar
+bin
+build
+classes
+target
+dependency-reduced-pom.xml
+*.sublime-*
+/scratch
+.gradle
+Guardfile
+README.html
+
+# Idea IntelliJ reject
+.idea
+/*.iml
+
+/libs
+/web
+/**/logs

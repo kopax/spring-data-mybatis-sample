@@ -1,0 +1,13 @@
+rootProject.name = 'api'
+
+// Core (Needed for all api)
+include 'core'
+
+// Application (user and application management)
+include 'application'
+
+// Extensions
+//include 'company'
+//include 'customer'
+
+

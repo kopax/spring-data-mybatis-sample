@@ -1,0 +1,80 @@
+archivesBaseName = 'api-application'
+
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    // Import local jars
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    // --------------------------
+    // compile multi-part project
+    // --------------------------
+    // Common lib domain
+//    compile(group: 'com.domain.api.common.webutils', name: 'webutils', version: '0.0.1-SNAPSHOT')
+
+    // Core lib API domain
+    compile project(":core")
+//    compile project(":company")
+//    compile project(":customer")
+
+    // ---------------------
+    // ---UTILITIES---------
+    // ---------------------
+    // Serialization with google gson
+    compile("com.google.code.gson:gson:${gsonVersion}")
+    // Apache utils
+    compile("org.apache.commons:commons-lang3:${apachUtilsVersion}")
+    compile("org.apache.directory.server:apacheds-server-jndi:${apachedsServerJndiVersion}")
+
+    // --------------
+    // ---SECURITY---
+    // --------------
+    // Spring LDAP is a Java library for simplifying LDAP operations, based on the pattern of Spring"s JdbcTemplate.
+//    compile("org.springframework.security:spring-security-ldap")
+//    compile("org.springframework:spring-tx")
+    // Module for providing OAuth2 support to Spring Security
+
+    // Create REST representations that follow the HATEOAS principle
+//    compile("org.springframework.hateoas:spring-hateoas:0.20.0.RELEASE")
+
+    // Starter for using Spring Boot"s Actuator which provides production ready features to help you monitor and manage your application
+    // NOTE: tested the 2016-09-13 with 1.4.0:RELEASE, starter as errors , see #5984
+    // TODO: retest with futur release
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Starter for using Spring Framework"s caching support
+    // TODO: not tested yet
+    compile("org.springframework.boot:spring-boot-starter-cache")
+
+    // Starter for using Elasticsearch search and analytics engine and Spring Data Elasticsearch
+    // TODO: not tested yet
+//    compile("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+
+    // Starter for using Java Mail and Spring Framework"s email sending support
+    // TODO: not tested yet
+//    compile("org.springframework.boot:spring-boot-starter-mail")
+
+    // Stater for logging using Logback. Default logging starter
+    // TODO: not tested yet
+//    compile("org.springframework.boot:spring-boot-starter-logging")
+
+    // Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
+//    compile("org.springframework.boot:spring-boot-starter-web")
+
+    // Starter for testing Spring Boot applications with libraries including JUnit, Hamcrest and Mockito
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+
+    // includes a Java annotation processor which is invoked as your project is compiled
+    optional("org.springframework.boot:spring-boot-configuration-processor")
+
+    // include dev-tools
+    optional("org.springframework.boot:spring-boot-devtools")
+
+    // add git.properties // TODO: test if working
+//    compile("pl.project13.maven:git-commit-id-plugin:2.2.1")
+}
+
+dependencyManagement {
+    imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
+}
+

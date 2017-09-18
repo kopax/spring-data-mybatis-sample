@@ -1,0 +1,212 @@
+def artifactory_repoKey = System.properties['artifactory_repoKey'] ?: findProperty('artifactory_repoKey') ?: 'libs-snapshot-local'
+def artifactory_password = System.properties['artifactory_password'] ?: findProperty('artifactory_password') ?: ''
+def artifactory_login = System.properties['artifactory_login'] ?: findProperty('artifactory_login') ?: ''
+def artifactory_contextUrl = System.properties['artifactory_contextUrl'] ?: findProperty('artifactory_contextUrl')
+
+buildscript {
+
+    ext {
+        gradleReleaseVersion = '2.4.1'
+        springBootVersion = '1.5.6.RELEASE'
+        springSessionJdbcVersion = '1.3.1.RELEASE'
+        springSecurityOauth2Version = '2.2.0.RELEASE'
+        springSecurityJwtVersion = '1.0.8.RELEASE'
+        propdepsPluginVersion = '0.0.7'
+        gsonVersion = '2.8.0'
+        apachUtilsVersion = '3.5'
+        apachedsServerJndiVersion = '1.5.5'
+        postgresqlVersion = '42.0.0.jre7'
+        springBootStarterDataMybatisVersion = '1.0.17.RELEASE'
+        mybatisTypehandlersJsr310Version  = '1.0.1'
+        jacksonDatatypeJsr310Version = '2.9.0.pr1'
+        buildInfoExtractorGradleVersion = '4.4.15'
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://repo.spring.io/plugins-release"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsPluginVersion}")
+        classpath("net.researchgate:gradle-release:${gradleReleaseVersion}")
+        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}")
+    }
+}
+
+// these plugins are applied at the gradle project
+apply plugin: 'java'
+apply plugin: 'net.researchgate.release'
+apply plugin: 'application'
+
+archivesBaseName = 'api'
+mainClassName = 'com.domain.api.ApiApplication'
+
+def modules = "application,core,user,company,customer,datasources,webutils"
+
+// configuration reflected in all project and subprojects
+allprojects {
+
+    // theses plugins are applied in all projects
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'propdeps'
+    apply plugin: 'propdeps-idea'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.artifactory'
+    apply plugin: 'jacoco'
+
+    bootRepackage {
+        mainClass = "com.domain.api.ApiApplication"
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://repo.spring.io/plugins-release"
+        }
+    }
+
+    dependencies {
+        compile('org.springframework.boot:spring-boot-starter')
+        testCompile('org.springframework.boot:spring-boot-starter-test')
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    jacocoTestReport {
+        additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+        classDirectories =  files(sourceSets.main.output)
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            csv.enabled = false
+        }
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// import the application
+dependencies {
+    compile project(":application")
+    optional("org.springframework.boot:spring-boot-configuration-processor")
+}
+
+release {
+    tagTemplate = '$name-$version'
+    failOnCommitNeeded = true
+    failOnPublishNeeded = true
+    failOnSnapshotDependencies = true
+    failOnUnversionedFiles = true
+    failOnUpdateNeeded = true
+    revertOnFail = true
+    preTagCommitMessage = '[Release] - pre tag commit: '
+    tagCommitMessage = '[Release] - creating tag: '
+    newVersionCommitMessage = '[Release] - new version commit: '
+    versionPropertyFile = 'gradle.properties'
+    buildTasks = ['build']
+
+    git {
+        requireBranch = 'ci-branch'
+//        requireBranch = "v${findProperty('release.releaseVersion')}"
+        pushToRemote = 'origin'
+        pushToBranchPrefix = ''
+        commitVersionFileOnly = false
+    }
+}
+
+task(startmessage) {
+    doLast {
+        println 'starting build'
+    }
+}
+
+task(printversion) {
+    doLast {
+        println project.version
+    }
+}
+
+beforeReleaseBuild.dependsOn startmessage
+afterReleaseBuild.dependsOn printversion
+
+artifactory {
+    contextUrl = "${artifactory_contextUrl}"   //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        repository {
+            repoKey = "${artifactory_repoKey}"
+            username = "${artifactory_login}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+        defaults {
+            // Reference to Gradle publications defined in the build script.
+            // This is how we tell the Artifactory Plugin which artifacts should be
+            // published to Artifactory.
+            publications('mavenJava')
+            publishArtifacts = true
+            // Properties to be attached to the published artifacts.
+//            properties = ['qa.level': 'basic', 'dev.team' : 'core']
+            // Publish generated POM files to Artifactory (true by default)
+            publishPom = true
+        }
+    }
+    resolve {
+        repository {
+            repoKey = "${artifactory_repoKey}"
+            username = "${artifactory_login}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+    }
+
+}
+
+
+task jacocoRootReport(type: JacocoReport) {
+    dependsOn = subprojects.test
+    additionalSourceDirs = files(allprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(allprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories =  files(allprojects.sourceSets.main.output)
+    executionData = files(allprojects.jacocoTestReport.executionData)
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
+//    onlyIf = {
+//        true
+//    }
+//    doFirst {
+//        executionData = files(executionData.findAll {
+//            it.exists()
+//        })
+//    }
+}
+
+jacocoRootReport.dependsOn(test)
+
+// Without this directive any additional-spring-configuration-metadata.json files will not be processed.
+compileJava.dependsOn(processResources)
+
+// Wrapper configuration
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.5'
+}

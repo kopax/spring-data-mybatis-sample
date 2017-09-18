@@ -1,0 +1,39 @@
+archivesBaseName = 'api-company'
+
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-data-rest")
+
+    compile project(":core")
+    // ---------------------
+    // ---UTILITIES---------
+    // ---------------------
+    // Serialization with google gson
+//    compile("com.google.code.gson:gson:2.8.0")
+    // Apache utils
+//    compile("org.apache.commons:commons-lang3:3.5")
+//    compile("org.apache.directory.server:apacheds-server-jndi:1.5.5")
+
+    // ---------------------
+    // ---DATABASE----------
+    // ---------------------
+
+    // SQL
+//    compile("org.postgresql:postgresql:42.0.0.jre7")
+    // ORM
+    compile("com.ifrabbit:spring-boot-starter-data-mybatis:${springBootStarterDataMybatisVersion}")
+    compile("org.mybatis:mybatis-typehandlers-jsr310:${mybatisTypehandlersJsr310Version}")
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
+
+//    compile("org.springframework.security.oauth:spring-security-oauth2:2.1.0.RELEASE")
+//    compile("org.springframework.session:spring-session-jdbc:1.3.0.RELEASE")
+//    compile('org.apache.tomcat.embed:tomcat-embed-core:9.0.0.M19')
+//    compile("org.apache.directory.server:apacheds-server-jndi:1.5.5")
+
+}
+
+dependencyManagement {
+    imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
+}
+

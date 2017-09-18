@@ -1,0 +1,15 @@
+archivesBaseName = 'api-customer'
+
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    compile project(":core")
+    compile project(":company")
+}
+
+compileTestJava.dependsOn tasks.getByPath(':core:testClasses')
+
+dependencyManagement {
+    imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
+}
+
